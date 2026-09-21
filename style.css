@@ -1,0 +1,204 @@
+/* ==========================================================
+   GALAXIA DE AMOR — versión en PERSPECTIVA
+   La galaxia es un disco inclinado (como visto desde abajo):
+   · #galaxy-stage aplica la perspectiva 3D.
+   · #galaxy-orbit se inclina con rotateX y gira con rotateZ.
+   · Cada elemento se "contra-rota" (billboard) para quedar de
+     pie frente a la cámara, con los pies apoyados en el disco.
+   Variables que actualiza script.js: --tilt, --k, --cy, --hk, --rot
+   ========================================================== */
+
+:root {
+  --u: min(1vw, 1.8vh);
+  --gold: #ffd23a;
+  --art: .78;
+  --txt: .92;
+  --tilt: 62deg;   /* inclinación del disco */
+  --k: .47;        /* cos(tilt): cuánto se aplasta el disco en vertical */
+  --cy: 60%;       /* altura del núcleo en pantalla */
+  --hk: .85;       /* escala del corazón */
+  --rot: 0deg;
+}
+@supports (height: 100dvh) { :root { --u: min(1vw, 1.8dvh); } }
+@media (max-aspect-ratio: 1/1) { :root { --u: 1.1vw; --art: 1.25; --txt: 1.3; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none;
+  background: #000; -webkit-tap-highlight-color: transparent;
+}
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+#galaxy-container {
+  position: fixed; inset: 0; overflow: hidden;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  cursor: grab;
+  background:
+    radial-gradient(55% 40% at 8% 4%, rgba(255, 205, 0, .18), transparent 65%),
+    radial-gradient(70% 28% at 50% var(--cy), rgba(255, 185, 0, .16), transparent 75%),
+    radial-gradient(50% 35% at 95% 100%, rgba(255, 190, 0, .14), transparent 70%),
+    #000;
+}
+#galaxy-container.dragging { cursor: grabbing; }
+#fx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ---------- Escena 3D ---------- */
+#galaxy-stage {
+  position: absolute; inset: 0;
+  perspective: calc(var(--u) * 300);
+  perspective-origin: 50% var(--cy);
+}
+#galaxy-orbit {
+  position: absolute; left: 50%; top: var(--cy);
+  width: 0; height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt)) rotateZ(var(--rot));   /* inclinar y girar */
+}
+.item {
+  position: absolute; left: 0; top: 0; width: 0; height: 0;
+  transform-style: preserve-3d;
+}
+/* Billboard: deshace el giro y la inclinación → el elemento queda de pie y de frente.
+   El último translate ancla los "pies" (94 % de la altura) en el punto del disco. */
+.upright {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;   /* el billboard debe girar sobre el punto del disco, no sobre su centro */
+  transform: rotateZ(calc(var(--rot) * -1)) rotateX(calc(var(--tilt) * -1)) translate(-50%, -94%);
+}
+.upright.sf { transform: rotateZ(calc(var(--rot) * -1)) rotateX(calc(var(--tilt) * -1)) translate(-50%, -140%); }
+.upright.tx { transform: rotateZ(calc(var(--rot) * -1)) rotateX(calc(var(--tilt) * -1)) translate(-50%, -50%); }
+
+.float { animation: float var(--d, 7s) ease-in-out var(--del, 0s) infinite; }
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50%      { transform: translateY(calc(var(--u) * -.8)) rotate(1.5deg); }
+}
+
+/* Girasoles y ramos */
+.art { position: relative; width: calc(var(--u) * var(--art) * var(--w)); }
+.art::before {
+  content: ""; position: absolute; inset: -20%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 200, 40, .34), rgba(255, 170, 0, .1) 45%, transparent 70%);
+  animation: halo 4.5s ease-in-out var(--del, 0s) infinite; pointer-events: none;
+}
+.art::after {   /* resplandor sobre el suelo, bajo los pies del ramo */
+  content: ""; position: absolute; left: -5%; right: -5%; bottom: -5%; height: 12%;
+  background: radial-gradient(ellipse at center, rgba(255, 205, 60, .55), transparent 70%);
+  pointer-events: none;
+}
+@keyframes halo { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+.art svg, .art img { position: relative; z-index: 1; display: block; width: 100%; height: auto; overflow: visible; pointer-events: none; }
+
+/* Frases */
+.phrase {
+  display: block; white-space: nowrap;
+  font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive;
+  font-weight: 700;
+  font-size: calc(var(--u) * var(--txt) * var(--fs));
+  line-height: 1.1; color: #fff;
+  text-shadow: 0 0 calc(var(--u) * .35) rgba(255, 236, 160, .95),
+               0 0 calc(var(--u) * 1.1) rgba(255, 190, 20, .75),
+               0 0 calc(var(--u) * 2.4) rgba(255, 150, 0, .45);
+  animation: glow 3.8s ease-in-out var(--del, 0s) infinite;
+}
+@keyframes glow { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
+
+/* ---------- Núcleo fijo ---------- */
+#galaxy-core {
+  position: absolute; left: 50%; top: var(--cy); width: 0; height: 0;
+  pointer-events: none; mix-blend-mode: screen;
+}
+.disc { position: absolute; left: 0; top: 0; width: 0; height: 0; transform: scaleY(var(--k)); }
+#galaxy-core .glow, #galaxy-core .ring, #galaxy-core .nucleus {
+  position: absolute; border-radius: 50%;
+  width: var(--d); height: var(--d);
+  left: calc(var(--d) / -2); top: calc(var(--d) / -2);
+}
+.glow {
+  --d: calc(var(--u) * 100);
+  background: radial-gradient(circle, rgba(255, 214, 80, .8) 0%, rgba(255, 178, 0, .3) 26%, rgba(255, 150, 0, .07) 52%, transparent 68%);
+  animation: breathe 5s ease-in-out infinite;
+}
+@keyframes breathe { 0%, 100% { transform: scale(.94); opacity: .85; } 50% { transform: scale(1.06); opacity: 1; } }
+
+.nucleus {
+  --d: calc(var(--u) * 4.5);
+  transform: scaleY(.7);
+  background: radial-gradient(circle, #fff 0%, #fff4b8 30%, #ffd23a 60%, transparent 72%);
+  box-shadow: 0 0 calc(var(--u) * 2.5) calc(var(--u) * .8) rgba(255, 220, 90, .95),
+              0 0 calc(var(--u) * 8) calc(var(--u) * 2.5) rgba(255, 170, 0, .55);
+  animation: beat 2.6s ease-in-out infinite;
+}
+@keyframes beat { 0%, 100% { opacity: .85; } 50% { opacity: 1; } }
+
+/* Columna de luz que sube del núcleo hasta la punta del corazón */
+.beam {
+  position: absolute; left: calc(var(--u) * -1.2); bottom: 0;
+  width: calc(var(--u) * 2.4); height: calc(var(--u) * var(--hk) * 26);
+  background: linear-gradient(to top, rgba(255, 236, 150, .95), rgba(255, 200, 40, .35) 45%, transparent);
+  filter: blur(calc(var(--u) * .35));
+  animation: beat 3s ease-in-out infinite;
+}
+
+.ring.spiral::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 8%, rgba(255, 190, 20, .5) 35%, #ffd23a 62%, #fff6c4 78%, transparent 80% 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--th)), #000 calc(100% - var(--th) + 1px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - var(--th)), #000 calc(100% - var(--th) + 1px));
+  filter: drop-shadow(0 0 calc(var(--u) * .8) rgba(255, 190, 0, .9));
+}
+.ring.spiral { animation: spin var(--t) linear infinite; }
+.s1 { --d: calc(var(--u) * 16); --th: calc(var(--u) * 1.0); --t: 6s; }
+.s2 { --d: calc(var(--u) * 27); --th: calc(var(--u) * .7); --t: 11s; animation-direction: reverse; }
+.s3 { --d: calc(var(--u) * 42); --th: calc(var(--u) * .5); --t: 19s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ring.line {
+  border: calc(var(--u) * .25) solid rgba(255, 214, 90, .38);
+  box-shadow: 0 0 calc(var(--u) * 1.4) rgba(255, 190, 0, .4), inset 0 0 calc(var(--u) * 1.4) rgba(255, 190, 0, .25);
+}
+.l1 { --d: calc(var(--u) * 21); }
+.l2 { --d: calc(var(--u) * 35); border-color: rgba(255, 214, 90, .2); }
+
+.ring.wave {
+  --d: calc(var(--u) * 14);
+  border: calc(var(--u) * .4) solid rgba(255, 224, 110, .8);
+  box-shadow: 0 0 calc(var(--u) * 1.5) rgba(255, 190, 0, .7);
+  opacity: 0; animation: wave 5.4s cubic-bezier(.2, .6, .3, 1) infinite;
+}
+.w2 { animation-delay: 1.8s; }
+.w3 { animation-delay: 3.6s; }
+@keyframes wave { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(5.2); opacity: 0; } }
+
+/* ---------- Textos fijos ---------- */
+.hud { position: absolute; inset: 0; pointer-events: none; }
+.heart-text, .title, .hint { position: absolute; left: 50%; margin: 0; transform: translateX(-50%); white-space: nowrap; text-align: center; }
+
+.heart-text {
+  top: calc(var(--cy) - var(--u) * var(--hk) * 23);
+  font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive; font-weight: 700;
+  font-size: calc(var(--u) * var(--hk) * 4.2);
+  color: #fff;
+  text-shadow: 0 0 calc(var(--u) * .5) #fff2b0, 0 0 calc(var(--u) * 1.6) rgba(255, 190, 0, .9), 0 0 calc(var(--u) * 3.6) rgba(255, 150, 0, .6);
+  animation: glow 3.2s ease-in-out infinite;
+}
+.title {
+  top: calc(var(--cy) + var(--u) * 11);
+  font-family: 'Dancing Script', 'Segoe Script', 'Brush Script MT', cursive; font-weight: 700;
+  font-size: calc(var(--u) * var(--txt) * 6);
+  color: #fff;
+  text-shadow: 0 0 calc(var(--u) * .5) #fff6c8, 0 0 calc(var(--u) * 1.8) rgba(255, 200, 30, .95), 0 0 calc(var(--u) * 4) rgba(255, 150, 0, .65);
+  animation: glow 4s ease-in-out infinite;
+}
+.hint {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5vh);
+  font: 500 clamp(12px, 1.6vmin, 15px) system-ui, sans-serif;
+  color: rgba(255, 230, 150, .75); letter-spacing: .04em;
+  transition: opacity 1s ease; animation: glow 3s ease-in-out infinite;
+}
+.hint.hidden { opacity: 0 !important; animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .float, .art::before, .phrase, .glow, .nucleus, .beam, .ring, .heart-text, .title, .hint { animation: none !important; }
+  .ring.wave { opacity: .25; }
+}

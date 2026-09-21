@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Galaxia de amor 💛🌻 (vista en perspectiva)</title>
+
+  <!-- Tipografías (si no hay conexión, se usan las de respaldo del CSS) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Degradados compartidos por todos los girasoles SVG generados en script.js -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="gPetal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff06a"/><stop offset="1" stop-color="#f7a800"/>
+      </linearGradient>
+      <linearGradient id="gPetalD" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f6c400"/><stop offset="1" stop-color="#d98500"/>
+      </linearGradient>
+      <radialGradient id="gCore" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#2b1407"/><stop offset=".55" stop-color="#55290c"/>
+        <stop offset=".85" stop-color="#8a5014"/><stop offset="1" stop-color="#c78a22"/>
+      </radialGradient>
+      <linearGradient id="gLeaf" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#58a83f"/><stop offset="1" stop-color="#2a6626"/>
+      </linearGradient>
+      <linearGradient id="gPaper" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ecd0a8"/><stop offset="1" stop-color="#c79a6a"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Contenedor a pantalla completa: recibe los gestos (mouse, dedo, lápiz) -->
+  <main id="galaxy-container" aria-label="Galaxia de amor. Arrastra para girarla.">
+
+    <!-- Capa 0: estrellas, polvo dorado, pétalos y corazón de partículas (Canvas 2D) -->
+    <canvas id="fx"></canvas>
+
+    <!-- Elementos que GIRAN juntos alrededor del núcleo -->
+    <div id="galaxy-stage"><div id="galaxy-orbit"></div></div>
+
+    <!-- Núcleo luminoso: FUERA de la órbita, siempre fijo en el centro -->
+    <div id="galaxy-core" aria-hidden="true">
+      <!-- .disc está aplastado (scaleY) para simular el plano visto desde abajo -->
+      <div class="disc">
+        <div class="glow"></div>
+        <div class="ring spiral s1"></div>
+        <div class="ring spiral s2"></div>
+        <div class="ring spiral s3"></div>
+        <div class="ring line l1"></div>
+        <div class="ring line l2"></div>
+        <div class="ring wave w1"></div>
+        <div class="ring wave w2"></div>
+        <div class="ring wave w3"></div>
+      </div>
+      <div class="beam"></div>
+      <div class="nucleus"></div>
+    </div>
+
+    <!-- Textos fijos del centro -->
+    <div class="hud" aria-hidden="false">
+      <p class="heart-text">Te amo 💛🌻</p>
+      <h1 class="title">Te Amo 💛</h1>
+      <p id="hint" class="hint">Desliza para girar la galaxia</p>
+    </div>
+  </main>
+
+  <noscript><p style="color:#ffd23a;text-align:center;padding:2rem">Activa JavaScript para ver la galaxia 💛</p></noscript>
+  <script src="script.js"></script>
+</body>
+</html>
